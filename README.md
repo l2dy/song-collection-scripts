@@ -6,6 +6,15 @@ However, when `diff`-ing list of files from two file systems, given that filenam
 
 Use `normalizeFolderByRef --srcDir <src> --dstDir <dst>` to make folder names in `dst` match that of the `src`.
 
+### macOS (ZFS) Command Output Test
+
+- `find . -name '*.tak'` is not normalized.
+- `ls` is not normalized.
+- `ls *.tak` in `zsh` is normalized.
+- `echo *` in `zsh` is normalized.
+
+It appears that glob expansion in `zsh` normalizes the arguments.
+
 ## FLAC integrity check
 
 Run `flac-check.sh` in the directory to check.

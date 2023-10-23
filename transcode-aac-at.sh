@@ -11,13 +11,17 @@ FILE_LIST="$2"
 if [ -z "$FILE_LIST" ]; then
   find . -type f -name '*.flac' -print0 | \
   parallel -0 -j"$ncpu" \
-    'test -f '"$TARGET"'/{.}.opus ||
+    'test -f '"$TARGET"'/{.}.m4a ||
     (mkdir -p '"$TARGET"'/{//} &&
-    ffmpeg -hide_banner -i {} -vn -c:a aac_at -q:a 2 '"$TARGET"'/{.}.m4a)'
+    ffmpeg -hide_banner -i {} -vn -c:a aac_at -q:a 2 '"$TARGET"'/{.}.m4a) ||
+    echo :::{} failed to transcode'
 else
   # Assume filenames do not contain \n.
   parallel -j"$ncpu" \
-    'test -f '"$TARGET"'/{.}.opus ||
+    'test -f '"$TARGET"'/{.}.m4a ||
     (mkdir -p '"$TARGET"'/{//} &&
-    ffmpeg -hide_banner -i {} -vn -c:a aac_at -q:a 2 '"$TARGET"'/{.}.m4a)' < "$FILE_LIST"
+    ffmpeg -hide_banner -i {} -vn -c:a aac_at -q:a 2 '"$TARGET"'/{.}.m4a) ||
+    (echo :::{} fallback to libfdk_aac &&
+    ffmpeg6 -hide_banner -y -i {} -vn -c:a libfdk_aac -vbr 5 '"$TARGET"'/{.}.m4a) ||
+    echo :::{} failed to transcode' < "$FILE_LIST"
 fi

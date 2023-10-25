@@ -51,6 +51,7 @@ func CopyCoverImage(srcDirs string, dstDir string, dryRun bool) error {
 		if len(files) >= 1 && len(coverFiles[dir]) == 0 {
 			// Directory exists, but no cover file found
 			srcCoverFileMap := make(map[string]string)
+			srcSecondaryCoverFileMap := make(map[string]string)
 			srcAudioFiles := make(map[string]string)
 
 			for srcDir, srcFS := range srcFSs {
@@ -76,6 +77,22 @@ func CopyCoverImage(srcDirs string, dstDir string, dryRun bool) error {
 						}
 					}
 				}
+
+				// If no cover file was found, try to find a secondary cover file
+				if len(srcCoverFileMap) == 0 {
+					err = fs.WalkDir(srcFS, dirPath, func(p string, d fs.DirEntry, err error) error {
+						ext := strings.ToLower(path.Ext(d.Name()))
+						for _, coverFileExtension := range []string{".jpg", ".jpeg", ".png"} {
+							if !d.IsDir() && ext == coverFileExtension {
+								srcSecondaryCoverFileMap[d.Name()] = path.Join(srcDir, p)
+							}
+						}
+						return nil
+					})
+					if err != nil {
+						log.Printf("Error walking %s: %s", dirPath, err)
+					}
+				}
 			}
 
 			existingCoverFileCount := len(srcCoverFileMap)
@@ -84,10 +101,17 @@ func CopyCoverImage(srcDirs string, dstDir string, dryRun bool) error {
 				// No cover file found, try to extract one from the FLAC files
 				copied := tryExtractFromAudioFiles(dstDir, dir, dryRun, srcAudioFiles)
 				if !copied {
-					// No cover file found
-					log.Printf("No cover file found for %s", dir)
+					if len(srcSecondaryCoverFileMap) > 0 {
+						existingCoverFileCount = len(srcSecondaryCoverFileMap)
+						srcCoverFileMap = srcSecondaryCoverFileMap // Use secondary cover file set
+					} else {
+						// No cover file found
+						log.Printf("No cover file found for %s", dir)
+						continue
+					}
 				}
-			} else if existingCoverFileCount == 1 {
+			}
+			if existingCoverFileCount == 1 {
 				// Only one cover file found, copy it
 				for coverFile, coverFilePath := range srcCoverFileMap {
 					ext := strings.ToLower(path.Ext(coverFile))
@@ -113,7 +137,8 @@ func CopyCoverImage(srcDirs string, dstDir string, dryRun bool) error {
 
 					preferred := false
 					for _, preferredName := range []string{"cover", "folder"} {
-						if strings.HasPrefix(name, preferredName) {
+						if strings.HasPrefix(name, preferredName) &&
+							!strings.HasPrefix(name, "Cover_01") {
 							preferred = true
 							break
 						}

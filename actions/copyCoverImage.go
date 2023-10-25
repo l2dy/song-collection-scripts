@@ -136,9 +136,14 @@ func CopyCoverImage(srcDirs string, dstDir string, dryRun bool) error {
 					ext := strings.ToLower(path.Ext(coverFile))
 
 					preferred := false
-					for _, preferredName := range []string{"cover", "folder"} {
-						if strings.HasPrefix(name, preferredName) &&
-							!strings.HasPrefix(name, "Cover_01") {
+					for _, preferredNamePrefix := range []string{"cover", "folder"} {
+						if strings.HasPrefix(name, preferredNamePrefix) {
+							preferred = true
+							break
+						}
+					}
+					for _, preferredNameSuffix := range []string{" (1)", " (01)"} {
+						if strings.HasSuffix(name, preferredNameSuffix) {
 							preferred = true
 							break
 						}
@@ -179,30 +184,12 @@ func CopyCoverImage(srcDirs string, dstDir string, dryRun bool) error {
 				}
 
 				// Could not determine which cover file to copy
-				// As a last resort, copy the first cover file found
-				log.Printf("Multiple cover files found for %s", dir)
 				if !copied {
-					for coverFile, coverFilePath := range srcCoverFileMap {
-						ext := strings.ToLower(path.Ext(coverFile))
-						targetFilename := "cover" + ext
-
-						if !dryRun {
-							log.Printf("Copying %s to %s", coverFilePath, targetFilename)
-							err := utils.CopyFile(coverFilePath, path.Join(dstDir, dir, targetFilename))
-							if err != nil {
-								log.Printf("Error copying %s: %s", coverFilePath, err)
-							} else {
-								copied = true
-								break
-							}
-						} else {
-							fmt.Printf("%s -> %s\n", coverFilePath, path.Join(dstDir, dir))
-							copied = true
-							break
-						}
-					}
+					log.Printf("Multiple cover files found for %s", dir)
+					continue
 				}
 
+				// Catch-all
 				if !copied {
 					log.Printf("Failed to copy cover file for %s", dir)
 				}

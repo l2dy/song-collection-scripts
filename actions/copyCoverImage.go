@@ -36,11 +36,11 @@ func CopyCoverImage(srcDirs string, dstDir string, dryRun bool) error {
 			return nil
 		}
 
+		dir := strings.TrimSuffix(path, d.Name())
 		if strings.HasSuffix(d.Name(), ".m4a") || strings.HasSuffix(d.Name(), ".mp3") {
-			dir := strings.TrimSuffix(path, d.Name())
 			audioFiles[dir] = append(audioFiles[dir], d.Name())
 		} else if strings.HasPrefix(d.Name(), "cover.") {
-			coverFiles[path] = append(coverFiles[path], d.Name())
+			coverFiles[dir] = append(coverFiles[dir], d.Name())
 		}
 
 		return nil

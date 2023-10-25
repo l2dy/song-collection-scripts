@@ -5,7 +5,7 @@ set -e
 
 ncpu="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)"
 
-TARGET="${1%/}"
+TARGET="$(printf '%q' "${1%/}")"
 FILE_LIST="$2"
 
 if [ -z "$FILE_LIST" ]; then

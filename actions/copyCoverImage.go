@@ -29,7 +29,7 @@ func CopyCoverImage(srcDirs string, dstDir string, dryRun bool) error {
 	audioFiles := make(map[string][]string)
 	coverFiles := make(map[string][]string)
 
-	// Map the directory structure to a map of directories and FLAC files
+	// Map the directory structure to a map of directories and music files
 	fs.WalkDir(dstFS, ".", func(path string, d fs.DirEntry, err error) error {
 		// TODO: Add more audio file extensions
 		if d.IsDir() {
@@ -46,7 +46,7 @@ func CopyCoverImage(srcDirs string, dstDir string, dryRun bool) error {
 		return nil
 	})
 
-	// Print the directories that have more than one FLAC file
+	// Loop through directories with audio files and no cover
 	for dir, files := range audioFiles {
 		if len(files) >= 1 && len(coverFiles[dir]) == 0 {
 			// Directory exists, but no cover file found

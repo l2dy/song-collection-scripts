@@ -14,9 +14,12 @@ if [ -z "$FILE_LIST" ]; then
     'test -f '"$TARGET"'/{.}.m4a ||
     (mkdir -p '"$TARGET"'/{//} &&
     ffmpeg -hide_banner -i {} -vn -c:a aac_at -q:a 2 '"$TARGET"'/{.}.m4a) ||
+    (echo :::{} fallback to libfdk_aac &&
+    ffmpeg6 -hide_banner -y -i {} -vn -c:a libfdk_aac -vbr 5 '"$TARGET"'/{.}.m4a) ||
     echo :::{} failed to transcode'
 else
   # Assume filenames do not contain \n.
+  # Fall back to libfdk_aac for 96kHz audio.
   parallel -j"$ncpu" \
     'test -f '"$TARGET"'/{.}.m4a ||
     (mkdir -p '"$TARGET"'/{//} &&

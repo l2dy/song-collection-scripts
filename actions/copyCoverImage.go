@@ -223,6 +223,8 @@ func tryExtractFromAudioFiles(dstDir string, dir string, dryRun bool, srcAudioFi
 			continue
 		} else if dryRun {
 			fmt.Printf("%s (cover) -> %s\n", audioFilePath, path.Join(dstDir, dir))
+		} else {
+			log.Printf("Copying image from %s to %s", audioFilePath, path.Join(dstDir, dir))
 		}
 
 		return true
